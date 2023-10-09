@@ -140,14 +140,47 @@ plot_grid(Q2Plot1, Q2Plot2, align = "v", ncol = 1, rel_heights = c(.5, .5))
 #include all originally observed variables
 covar <- read.csv("nhanes_covar.csv",skip =4)
 accel <-read.csv("nhanes_accel.csv")
-covar %>%
+problem3_1 <- covar %>%
   #exclude participants less than 21 years of age
   filter(age >= 21)%>%
   #exclude those with missing demographic data
   drop_na(BMI, education)%>%
   #encode data with reasonable variable classes in factor instead of numerical
   mutate(sex = factor(recode(sex, "1" = "male", "2" = "female"), levels =c("male", "female")),
-           education = factor(recode(education, "1"="Less than high school", "2" = "High school equivalent", "3" = "More than high school"),levels = c("Less than high school","High school equivalent", "More than high school")))
+         education = factor(recode(education, "1"="Less than high school", "2" = "High school equivalent", "3" = "More than high school"),levels = c("Less than high school","High school equivalent", "More than high school")))
 
 ```
+```{r}
+#Produce a reader-friendly table for the number of men and women in each education category, since education is factor, we need to transfer the factor to numeric first for counting
+problem3_2 <- transform(problem3_1, education = as.numeric(education)) %>%
+  group_by(sex,education)%>%
+  summarise(number_of_people = sum(education))%>%
+#then for a reader-friendly table, we need to tranfer the variable in education column back to character
+  mutate(education = recode(education, "1"="Less than high school", "2" = "High school equivalent", "3" = "More than high school"))%>%
+  ungroup(sex, education)
+```
 
+
+```{r}
+#create a visualization of the age distributions for men and women in each education category
+
+#max age is 80
+problem3_3_1<-problem3_1%>%
+  filter(education == "Less than high school")%>%
+  # Define age distribution groups
+  mutate(age_groups = cut(age, breaks = c(20, 40, 60, 80),labels = c("20-40", "41-60", "61-80")))
+
+age_group_counts <- problem3_3_1 %>%
+  group_by(age_groups,sex) %>%
+  summarise(count = n())%>%
+  ungroup(age_groups,sex)
+
+
+plot1<- ggplot(age_group_counts, aes(x = age_groups, y = count, fill = sex)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Age Group", y = "Count") +
+  ggtitle("Age Distribution for Less than high school") +
+  theme_minimal()
+  
+```
+comment on the table: most of women and men's education are both more than high school.

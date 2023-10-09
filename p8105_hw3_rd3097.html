@@ -578,243 +578,44 @@ plot_grid(Q2Plot1, Q2Plot2, align = &quot;v&quot;, ncol = 1, rel_heights = c(.5,
 <pre class="r"><code>#include all originally observed variables
 covar &lt;- read.csv(&quot;nhanes_covar.csv&quot;,skip =4)
 accel &lt;-read.csv(&quot;nhanes_accel.csv&quot;)
-covar %&gt;%
+problem3_1 &lt;- covar %&gt;%
   #exclude participants less than 21 years of age
   filter(age &gt;= 21)%&gt;%
   #exclude those with missing demographic data
   drop_na(BMI, education)%&gt;%
   #encode data with reasonable variable classes in factor instead of numerical
   mutate(sex = factor(recode(sex, &quot;1&quot; = &quot;male&quot;, &quot;2&quot; = &quot;female&quot;), levels =c(&quot;male&quot;, &quot;female&quot;)),
-           education = factor(recode(education, &quot;1&quot;=&quot;Less than high school&quot;, &quot;2&quot; = &quot;High school equivalent&quot;, &quot;3&quot; = &quot;More than high school&quot;),levels = c(&quot;Less than high school&quot;,&quot;High school equivalent&quot;, &quot;More than high school&quot;)))</code></pre>
-<pre><code>##      SEQN    sex age  BMI              education
-## 1   62161   male  22 23.3 High school equivalent
-## 2   62164 female  44 23.2  More than high school
-## 3   62169   male  21 20.1 High school equivalent
-## 4   62174   male  80 33.9  More than high school
-## 5   62177   male  51 20.1 High school equivalent
-## 6   62178   male  80 28.5 High school equivalent
-## 7   62180   male  35 27.9  More than high school
-## 8   62184   male  26 22.1 High school equivalent
-## 9   62189 female  30 22.4  More than high school
-## 10  62199   male  57 28.0  More than high school
-## 11  62202   male  36 24.7  Less than high school
-## 12  62205   male  28 28.9  More than high school
-## 13  62206 female  35 29.1  More than high school
-## 14  62208   male  38 22.2  More than high school
-## 15  62209 female  62 26.0  Less than high school
-## 16  62214 female  22 23.8 High school equivalent
-## 17  62215 female  65 26.7  More than high school
-## 18  62217 female  77 30.6  Less than high school
-## 19  62218 female  38 45.4  More than high school
-## 20  62220 female  31 40.4  More than high school
-## 21  62222   male  32 25.0  More than high school
-## 22  62223   male  54 20.5 High school equivalent
-## 23  62224 female  29 27.2  Less than high school
-## 24  62226   male  80 28.4  More than high school
-## 25  62228   male  50 43.4  More than high school
-## 26  62229 female  31 28.6  More than high school
-## 27  62230   male  75 29.7  Less than high school
-## 28  62231 female  48 33.2 High school equivalent
-## 29  62232 female  42 31.6  More than high school
-## 30  62233 female  63 45.2  Less than high school
-## 31  62236   male  61 23.2  More than high school
-## 32  62237 female  58 39.9  More than high school
-## 33  62239 female  22 23.3 High school equivalent
-## 34  62242   male  24 27.0  More than high school
-## 35  62248   male  65 26.6  Less than high school
-## 36  62249 female  26 20.3  More than high school
-## 37  62251 female  51 31.9  More than high school
-## 38  62255   male  65 27.1 High school equivalent
-## 39  62258   male  47 31.0  Less than high school
-## 40  62259   male  61 41.7  More than high school
-## 41  62261   male  47 28.6  More than high school
-## 42  62264   male  77 31.1  Less than high school
-## 43  62265   male  52 31.4  More than high school
-## 44  62275 female  41 21.8  More than high school
-## 45  62277 female  55 25.0  More than high school
-## 46  62278 female  72 28.3  More than high school
-## 47  62279   male  80 21.9  Less than high school
-## 48  62284 female  64 25.6  More than high school
-## 49  62286   male  30 41.0 High school equivalent
-## 50  62287 female  73 26.8  More than high school
-## 51  62288   male  29 20.1  More than high school
-## 52  62289   male  71 28.8  Less than high school
-## 53  62291   male  56 29.9  More than high school
-## 54  62293   male  67 21.3  More than high school
-## 55  62295 female  69 32.7  Less than high school
-## 56  62297   male  43 31.1  More than high school
-## 57  62301   male  23 33.0  Less than high school
-## 58  62302 female  51 25.4  Less than high school
-## 59  62303 female  76 31.9 High school equivalent
-## 60  62307   male  61 33.5 High school equivalent
-## 61  62308 female  78 24.6 High school equivalent
-## 62  62309 female  47 34.0  Less than high school
-## 63  62312 female  63 34.7  Less than high school
-## 64  62314   male  61 34.2 High school equivalent
-## 65  62315 female  80 22.7  Less than high school
-## 66  62317   male  46 27.6  More than high school
-## 67  62320 female  64 30.0  More than high school
-## 68  62330 female  33 18.4  More than high school
-## 69  62332   male  22 32.6  More than high school
-## 70  62342 female  38 32.9  More than high school
-## 71  62343   male  28 25.2  More than high school
-## 72  62347 female  71 24.0 High school equivalent
-## 73  62349 female  23 38.0  More than high school
-## 74  62350 female  43 22.3 High school equivalent
-## 75  62353   male  80 27.8  More than high school
-## 76  62357   male  36 25.6  More than high school
-## 77  62359 female  54 27.1  Less than high school
-## 78  62363 female  44 25.8  Less than high school
-## 79  62366   male  80 21.7 High school equivalent
-## 80  62367   male  50 27.4  Less than high school
-## 81  62368 female  80 22.0  Less than high school
-## 82  62370   male  21 18.3  More than high school
-## 83  62371   male  32 18.6  More than high school
-## 84  62374 female  31 23.1  More than high school
-## 85  62375   male  24 38.3 High school equivalent
-## 86  62377 female  78 24.7  Less than high school
-## 87  62378 female  68 33.2  Less than high school
-## 88  62379   male  40 20.2  More than high school
-## 89  62383   male  23 26.7  More than high school
-## 90  62386   male  35 38.4 High school equivalent
-## 91  62387   male  23 24.5 High school equivalent
-## 92  62391 female  40 25.1 High school equivalent
-## 93  62397 female  70 40.6  Less than high school
-## 94  62399 female  53 30.7  Less than high school
-## 95  62400 female  31 36.3  More than high school
-## 96  62402   male  48 23.3  Less than high school
-## 97  62407   male  49 29.9  More than high school
-## 98  62409 female  80 30.5 High school equivalent
-## 99  62413   male  65 40.0  More than high school
-## 100 62414   male  58 16.5 High school equivalent
-## 101 62415 female  27 26.7  More than high school
-## 102 62418   male  80 23.5  Less than high school
-## 103 62419   male  80 26.5 High school equivalent
-## 104 62421   male  23 24.5  More than high school
-## 105 62425 female  30 22.2  More than high school
-## 106 62429   male  47 37.3  More than high school
-## 107 62430   male  27 37.9  More than high school
-## 108 62431   male  54 18.9  Less than high school
-## 109 62432 female  38 23.4  More than high school
-## 110 62434 female  61 34.0 High school equivalent
-## 111 62437   male  39 27.2  Less than high school
-## 112 62439   male  75 33.0  More than high school
-## 113 62440   male  22 30.2  More than high school
-## 114 62441   male  68 24.0  Less than high school
-## 115 62444 female  23 33.6  More than high school
-## 116 62449 female  38 26.4  Less than high school
-## 117 62450   male  57 28.2  More than high school
-## 118 62452   male  39 33.1 High school equivalent
-## 119 62454 female  64 36.8  More than high school
-## 120 62457   male  69 25.7  More than high school
-## 121 62460   male  41 21.9  More than high school
-## 122 62461 female  29 35.3 High school equivalent
-## 123 62464   male  32 28.2 High school equivalent
-## 124 62465 female  44 27.8  More than high school
-## 125 62467   male  65 25.6  More than high school
-## 126 62471 female  76 28.0  Less than high school
-## 127 62474 female  71 56.3 High school equivalent
-## 128 62475   male  22 25.8 High school equivalent
-## 129 62480   male  43 28.5 High school equivalent
-## 130 62481 female  39 27.7  More than high school
-## 131 62484 female  42 47.2  More than high school
-## 132 62485   male  21 33.3  More than high school
-## 133 62487   male  65 25.5  Less than high school
-## 134 62494   male  28 26.8  More than high school
-## 135 62495   male  44 28.6  Less than high school
-## 136 62500 female  52 24.3  More than high school
-## 137 62501 female  30 25.6  More than high school
-## 138 62502   male  35 36.5 High school equivalent
-## 139 62504 female  30 38.9  Less than high school
-## 140 62506 female  46 28.4 High school equivalent
-## 141 62509 female  60 24.1  More than high school
-## 142 62510 female  80 29.8 High school equivalent
-## 143 62512   male  39 19.1  More than high school
-## 144 62513 female  46 26.7  Less than high school
-## 145 62514   male  44 33.6 High school equivalent
-## 146 62515 female  42 31.6  Less than high school
-## 147 62517   male  80 32.3  Less than high school
-## 148 62519   male  56 25.8 High school equivalent
-## 149 62521 female  59 23.1  More than high school
-## 150 62523   male  33 30.1  More than high school
-## 151 62524   male  23 24.0  More than high school
-## 152 62526 female  62 28.7 High school equivalent
-## 153 62527   male  79 25.8  Less than high school
-## 154 62529   male  59 45.6  More than high school
-## 155 62530 female  51 36.3  Less than high school
-## 156 62531 female  52 33.3 High school equivalent
-## 157 62532 female  64 39.5 High school equivalent
-## 158 62536   male  46 27.5  Less than high school
-## 159 62539   male  60 31.9  Less than high school
-## 160 62544   male  42 25.6  More than high school
-## 161 62546   male  64 36.5  More than high school
-## 162 62548   male  57 34.2 High school equivalent
-## 163 62549   male  53 21.5 High school equivalent
-## 164 62551 female  37 48.2  More than high school
-## 165 62552 female  41 22.5  More than high school
-## 166 62555   male  35 20.2  More than high school
-## 167 62556 female  31 22.4  More than high school
-## 168 62558 female  49 38.2 High school equivalent
-## 169 62565   male  23 31.7  More than high school
-## 170 62567 female  80 22.4  Less than high school
-## 171 62571 female  32 27.8  More than high school
-## 172 62572 female  80 20.3  More than high school
-## 173 62573 female  48 29.6  More than high school
-## 174 62577 female  71 35.6  More than high school
-## 175 62579   male  78 23.8  More than high school
-## 176 62584   male  22 23.2 High school equivalent
-## 177 62585 female  80 34.3 High school equivalent
-## 178 62586   male  70 40.1 High school equivalent
-## 179 62587   male  73 24.8  More than high school
-## 180 62589 female  75 24.8  More than high school
-## 181 62593 female  72 34.5  More than high school
-## 182 62595 female  28 23.8  More than high school
-## 183 62596 female  52 32.5  More than high school
-## 184 62597 female  60 50.5  Less than high school
-## 185 62599 female  50 30.0  More than high school
-## 186 62601   male  65 26.1 High school equivalent
-## 187 62602 female  80 25.8  More than high school
-## 188 62604 female  73 22.2 High school equivalent
-## 189 62611   male  45 30.7  Less than high school
-## 190 62612 female  38 30.5  More than high school
-## 191 62613 female  29 34.2  More than high school
-## 192 62616 female  37 19.3  Less than high school
-## 193 62619   male  80 24.9  More than high school
-## 194 62623 female  78 26.9  More than high school
-## 195 62625 female  60 23.9  More than high school
-## 196 62630 female  68 31.0  Less than high school
-## 197 62631 female  37 23.8  More than high school
-## 198 62632   male  29 48.3  Less than high school
-## 199 62633 female  61 24.0  More than high school
-## 200 62634   male  68 32.6  Less than high school
-## 201 62635 female  27 26.1  More than high school
-## 202 62639 female  26 38.6  Less than high school
-## 203 62640 female  31 37.1 High school equivalent
-## 204 62644   male  61 42.0  More than high school
-## 205 62649   male  76 36.6 High school equivalent
-## 206 62650   male  71 33.3  Less than high school
-## 207 62651   male  55 39.5 High school equivalent
-## 208 62652   male  46 29.3  Less than high school
-## 209 62658   male  68 34.5 High school equivalent
-## 210 62664   male  64 39.4  More than high school
-## 211 62665 female  67 20.1  More than high school
-## 212 62668   male  33 36.1  More than high school
-## 213 62669   male  33 22.5  More than high school
-## 214 62671   male  69 26.3  More than high school
-## 215 62674 female  33 21.5  More than high school
-## 216 62678   male  68 23.7  Less than high school
-## 217 62680   male  68 25.7 High school equivalent
-## 218 62682 female  62 34.9 High school equivalent
-## 219 62684 female  29 34.0  More than high school
-## 220 62685   male  36 22.5 High school equivalent
-## 221 62686 female  80 38.7 High school equivalent
-## 222 62689   male  44 43.5  More than high school
-## 223 62690 female  26 35.4  More than high school
-## 224 62691   male  31 23.6  Less than high school
-## 225 62693 female  69 40.7  Less than high school
-## 226 62694   male  37 40.1 High school equivalent
-## 227 62701 female  29 29.9  More than high school
-## 228 62704   male  80 24.8 High school equivalent</code></pre>
+         education = factor(recode(education, &quot;1&quot;=&quot;Less than high school&quot;, &quot;2&quot; = &quot;High school equivalent&quot;, &quot;3&quot; = &quot;More than high school&quot;),levels = c(&quot;Less than high school&quot;,&quot;High school equivalent&quot;, &quot;More than high school&quot;)))</code></pre>
+<pre class="r"><code>#Produce a reader-friendly table for the number of men and women in each education category, since education is factor, we need to transfer the factor to numeric first for counting
+problem3_2 &lt;- transform(problem3_1, education = as.numeric(education)) %&gt;%
+  group_by(sex,education)%&gt;%
+  summarise(number_of_people = sum(education))%&gt;%
+#then for a reader-friendly table, we need to tranfer the variable in education column back to character
+  mutate(education = recode(education, &quot;1&quot;=&quot;Less than high school&quot;, &quot;2&quot; = &quot;High school equivalent&quot;, &quot;3&quot; = &quot;More than high school&quot;))%&gt;%
+  ungroup(sex, education)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;sex&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<pre class="r"><code>#create a visualization of the age distributions for men and women in each education category
+
+#max age is 80
+problem3_3_1&lt;-problem3_1%&gt;%
+  filter(education == &quot;Less than high school&quot;)%&gt;%
+  # Define age distribution groups
+  mutate(age_groups = cut(age, breaks = c(20, 40, 60, 80),labels = c(&quot;20-40&quot;, &quot;41-60&quot;, &quot;61-80&quot;)))
+
+age_group_counts &lt;- problem3_3_1 %&gt;%
+  group_by(age_groups,sex) %&gt;%
+  summarise(count = n())%&gt;%
+  ungroup(age_groups,sex)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;age_groups&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre class="r"><code>plot1&lt;- ggplot(age_group_counts, aes(x = age_groups, y = count, fill = sex)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(x = &quot;Age Group&quot;, y = &quot;Count&quot;) +
+  ggtitle(&quot;Age Distribution for Less than high school&quot;) +
+  theme_minimal()</code></pre>
+<p>comment on the table: most of women and men’s education are both more
+than high school.</p>
 </div>
 
 
