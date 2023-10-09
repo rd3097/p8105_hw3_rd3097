@@ -25,11 +25,11 @@ library(cowplot)
 data("instacart")
 
 # 1）
-head(instacart)
 instacart %>%
   count(aisle) %>%
   arrange(desc(n))
-  
+
+#There are   
 # 2)
 df_Q1_2 <- instacart %>%
   count(aisle) %>%
@@ -37,7 +37,7 @@ df_Q1_2 <- instacart %>%
   arrange(desc(n))
 
 ggplot(data = df_Q1_2, aes(x = aisle, y= n, group = 1)) +
-  geom_line(color = 'red')+
+  geom_line()+
   geom_point()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
@@ -57,7 +57,7 @@ instacart %>%
   
 
 # 4)
-head(instacart) # dow 0-6; hourly 0-23; productName = coffee ice cream, pink....
+# dow 0-6; hourly 0-23; productName = coffee ice cream, pink....
 instacart %>%
   filter(product_name %in% c('Coffee Ice Cream', 'Pink Lady Apples')) %>%
   group_by(product_name,order_dow) %>%
@@ -66,9 +66,7 @@ instacart %>%
 
 ```
 
-How many aisles are there, and which aisles are the most items ordered from?
 
-134 aisles are there, and fresh vegetables are the most items ordered from
 
 
 ## Problem 2
@@ -136,3 +134,20 @@ plot_grid(Q2Plot1, Q2Plot2, align = "v", ncol = 1, rel_heights = c(.5, .5))
 
 
 ```
+
+## Problem 3
+```{r}
+#include all originally observed variables
+covar <- read.csv("nhanes_covar.csv",skip =4)
+accel <-read.csv("nhanes_accel.csv")
+covar %>%
+  #exclude participants less than 21 years of age
+  filter(age >= 21)%>%
+  #exclude those with missing demographic data
+  drop_na(BMI, education)%>%
+  #encode data with reasonable variable classes in factor instead of numerical
+  mutate(sex = factor(recode(sex, "1" = "male", "2" = "female"), levels =c("male", "female")),
+           education = factor(recode(education, "1"="Less than high school", "2" = "High school equivalent", "3" = "More than high school"),levels = c("Less than high school","High school equivalent", "More than high school")))
+
+```
+
