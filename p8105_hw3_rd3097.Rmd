@@ -12,11 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 Necessary Library
 ```{r}
 library(p8105.datasets)
-library(dplyr)
 #install.packages('cowplot')
-library(ggplot2)
 library(tidyverse)
 library(cowplot)
+#install.packages("gridExtra")
+library(gridExtra)
 ```
 
 
@@ -140,7 +140,7 @@ plot_grid(Q2Plot1, Q2Plot2, align = "v", ncol = 1, rel_heights = c(.5, .5))
 #include all originally observed variables
 covar <- read.csv("nhanes_covar.csv",skip =4)
 accel <-read.csv("nhanes_accel.csv")
-problem3_1 <- covar %>%
+tidied_covar <- covar %>%
   #exclude participants less than 21 years of age
   filter(age >= 21)%>%
   #exclude those with missing demographic data
@@ -152,7 +152,7 @@ problem3_1 <- covar %>%
 ```
 ```{r}
 #Produce a reader-friendly table for the number of men and women in each education category, since education is factor, we need to transfer the factor to numeric first for counting
-problem3_2 <- transform(problem3_1, education = as.numeric(education)) %>%
+problem3_2 <- transform(tidied_covar, education = as.numeric(education)) %>%
   group_by(sex,education)%>%
   summarise(number_of_people = sum(education))%>%
 #then for a reader-friendly table, we need to tranfer the variable in education column back to character
@@ -160,27 +160,101 @@ problem3_2 <- transform(problem3_1, education = as.numeric(education)) %>%
   ungroup(sex, education)
 ```
 
+comment on the table: most of women and men's education are both more than high school.
 
 ```{r}
 #create a visualization of the age distributions for men and women in each education category
 
 #max age is 80
-problem3_3_1<-problem3_1%>%
-  filter(education == "Less than high school")%>%
+age_distribution<-tidied_covar%>%
   # Define age distribution groups
   mutate(age_groups = cut(age, breaks = c(20, 40, 60, 80),labels = c("20-40", "41-60", "61-80")))
+ 
+#First we make plot for education less than high school
+Less_high <- age_distribution %>%
+  filter(education == "Less than high school")
 
-age_group_counts <- problem3_3_1 %>%
+age_group_counts1 <- Less_high %>%
   group_by(age_groups,sex) %>%
-  summarise(count = n())%>%
-  ungroup(age_groups,sex)
+  summarise(count = n(), .groups = 'drop')  
+#Second we make plot for education level High school equivalent
+Equi_high <- age_distribution %>%
+  filter(education == "High school equivalent")
+
+age_group_counts2 <- Equi_high %>%
+  group_by(age_groups,sex) %>%
+  summarise(count = n(), .groups = 'drop')
+#Third we make plot for education level More than high school 
+More_high <- age_distribution%>%
+  filter(education == "More than high school")
 
 
-plot1<- ggplot(age_group_counts, aes(x = age_groups, y = count, fill = sex)) +
+age_group_counts3 <- age_distribution %>%
+  group_by(age_groups,sex) %>%
+  summarise(count = n(), .groups = 'drop')
+
+#Then we make plot for each education level
+plot1<- ggplot(age_group_counts1, aes(x = age_groups, y = count, fill = sex)) +
   geom_bar(stat = "identity") +
-  labs(x = "Age Group", y = "Count") +
+  labs(x = "Age Group") +
   ggtitle("Age Distribution for Less than high school") +
   theme_minimal()
-  
+print(plot1)
+
+plot2<- ggplot(age_group_counts2, aes(x = age_groups, y = count, fill = sex)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Age Group") +
+  ggtitle("Age Distribution for High school equivalent") +
+  theme_minimal()
+
+plot3<- ggplot(age_group_counts3, aes(x = age_groups, y = count, fill = sex)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Age Group") +
+  ggtitle("Age Distribution for More than high school ") +
+  theme_minimal()
+
+plot_grid(plot1, plot2, plot3, align = "v", ncol = 1, rel_heights = c(.5, .5))
 ```
-comment on the table: most of women and men's education are both more than high school.
+comment: except for age group 20-40 and 41-60 of high school equivalent, where number of female are much less than the number of male, all other age groups in different education number has almost same number of female and male.
+
+#Using tidied dataset, aggregate across minutes to create a total activity variable for each participant
+```{r}
+tidied_accel <- accel%>%
+  mutate(total_activity = rowSums(accel[,-1]))%>%
+  select(SEQN,total_activity,everything())
+
+clean_data = 
+  left_join(tidied_covar,tidied_accel, by = "SEQN")
+
+#Plot these total activities (y-axis) against age (x-axis),plot should compare men to women and have separate panels for each education level, Include a trend line
+
+#First for education level less than high school
+clean_data_less<- filter(clean_data, education == "Less than high school" )
+total_activities_plot_1= 
+  clean_data_less |> 
+  ggplot(aes(x = age, y = total_activity, color = sex)) + 
+  ggtitle("Total Activity Distribution for Less than High School") +
+  geom_point(alpha = .5) +
+  geom_smooth(se = FALSE)
+
+#Second for education level equivalent to high schhol
+clean_data_equi<- filter(clean_data, education == "High school equivalent" )
+total_activities_plot_2= 
+  clean_data_equi |> 
+  ggplot(aes(x = age, y = total_activity, color = sex)) + 
+  ggtitle("Total Activity Distribution for High school equivalent") +
+  geom_point(alpha = .5) +
+  geom_smooth(se = FALSE)
+
+#Third for education level higher than high school
+clean_data_equi<- filter(clean_data, education == "More than high school" ) 
+total_activities_plot_3= 
+  clean_data_equi |> 
+  ggplot(aes(x = age, y = total_activity, color = sex)) + 
+  ggtitle("Total Activity Distribution for More than High school") +
+  geom_point(alpha = .5) +
+  geom_smooth(se = FALSE)
+
+plot_grid(total_activities_plot_1, total_activities_plot_2, total_activities_plot_3, align = "v", ncol = 1, rel_heights = c(.5, .5))
+```
+
