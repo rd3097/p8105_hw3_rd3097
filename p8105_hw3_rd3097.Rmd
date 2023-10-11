@@ -257,4 +257,36 @@ total_activities_plot_3=
 
 plot_grid(total_activities_plot_1, total_activities_plot_2, total_activities_plot_3, align = "v", ncol = 1, rel_heights = c(.5, .5))
 ```
+These trendline illustrates that for education level less than high school, male and female has almost the same total activity except that male has a bit larger total activity time for age over 50.
+
+For education level equivalent to high school, female has larger total activity distribution than male except for age around 63 where female has almost same total activity time as male.
+
+For education level higher than high school, female has a bit larger total activity time than male except for age 47 where female has almost same total activity time as male.
+
+```{r}
+#Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. 
+
+long_clean_data <- clean_data_less %>%
+  pivot_longer(cols = c(min1: min1440), names_to = "Time", values_to = "Value")
+
+#combine rows based on the time interval an hour
+Time_long <- long_clean_data %>%
+  mutate(Hour = (as.numeric(sub("min", "", Time)) - 1) %/% 60 + 1)
+
+Time_summary <- Time_long %>%
+  group_by(Hour) %>%
+  mutate(Hour_Value = mean(Value))
+
+#First for data with education level less than high school
+
+  
+ggplot(Time_summary, aes(x = Hour, y = Hour_Value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Hour", y = "Activity Values") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  coord_flip()  # Rotate the x-axis labels if needed
+
+
+
+```
 
