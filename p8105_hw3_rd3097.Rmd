@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Necessary Library
+
 ```{r}
 library(p8105.datasets)
 #install.packages('cowplot')
@@ -18,7 +19,6 @@ library(cowplot)
 #install.packages("gridExtra")
 library(gridExtra)
 ```
-
 
 ```{r}
 
@@ -65,9 +65,6 @@ instacart %>%
   pivot_wider(names_from = order_dow, values_from = Mean)
 
 ```
-
-
-
 
 ## Problem 2
 
@@ -136,6 +133,7 @@ plot_grid(Q2Plot1, Q2Plot2, align = "v", ncol = 1, rel_heights = c(.5, .5))
 ```
 
 ## Problem 3
+
 ```{r}
 #include all originally observed variables
 covar <- read.csv("nhanes_covar.csv",skip =4)
@@ -150,6 +148,7 @@ tidied_covar <- covar %>%
          education = factor(recode(education, "1"="Less than high school", "2" = "High school equivalent", "3" = "More than high school"),levels = c("Less than high school","High school equivalent", "More than high school")))
 
 ```
+
 ```{r}
 #Produce a reader-friendly table for the number of men and women in each education category, since education is factor, we need to transfer the factor to numeric first for counting
 problem3_2 <- transform(tidied_covar, education = as.numeric(education)) %>%
@@ -215,9 +214,11 @@ plot3<- ggplot(age_group_counts3, aes(x = age_groups, y = count, fill = sex)) +
 
 plot_grid(plot1, plot2, plot3, align = "v", ncol = 1, rel_heights = c(.5, .5))
 ```
+
 comment: except for age group 20-40 and 41-60 of high school equivalent, where number of female are much less than the number of male, all other age groups in different education number has almost same number of female and male.
 
 #Using tidied dataset, aggregate across minutes to create a total activity variable for each participant
+
 ```{r}
 tidied_accel <- accel%>%
   mutate(total_activity = rowSums(accel[,-1]))%>%
@@ -247,9 +248,9 @@ total_activities_plot_2=
   geom_smooth(se = FALSE)
 
 #Third for education level higher than high school
-clean_data_equi<- filter(clean_data, education == "More than high school" ) 
+clean_data_higher<- filter(clean_data, education == "More than high school" ) 
 total_activities_plot_3= 
-  clean_data_equi |> 
+  clean_data_higher |> 
   ggplot(aes(x = age, y = total_activity, color = sex)) + 
   ggtitle("Total Activity Distribution for More than High school") +
   geom_point(alpha = .5) +
@@ -257,6 +258,7 @@ total_activities_plot_3=
 
 plot_grid(total_activities_plot_1, total_activities_plot_2, total_activities_plot_3, align = "v", ncol = 1, rel_heights = c(.5, .5))
 ```
+
 These trendline illustrates that for education level less than high school, male and female has almost the same total activity except that male has a bit larger total activity time for age over 50.
 
 For education level equivalent to high school, female has larger total activity distribution than male except for age around 63 where female has almost same total activity time as male.
@@ -266,27 +268,59 @@ For education level higher than high school, female has a bit larger total activ
 ```{r}
 #Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. 
 
-long_clean_data <- clean_data_less %>%
+#First for data with education level less than high school
+long_clean_data_less <- clean_data_less %>%
   pivot_longer(cols = c(min1: min1440), names_to = "Time", values_to = "Value")
 
 #combine rows based on the time interval an hour
-Time_long <- long_clean_data %>%
-  mutate(Hour = (as.numeric(sub("min", "", Time)) - 1) %/% 60 + 1)
+Time_Final_Less <- long_clean_data_less %>%
+  mutate(Hour = (as.numeric(sub("min", "", Time)) - 1) %/% 60 + 1) %>%
+  group_by(sex, Hour) %>%
+  mutate(Hour_Value = mean(Value))%>%
+  distinct(sex, Hour, Hour_Value)
 
-Time_summary <- Time_long %>%
-  group_by(Hour) %>%
-  mutate(Hour_Value = mean(Value))
 
-#First for data with education level less than high school
-
-  
-ggplot(Time_summary, aes(x = Hour, y = Hour_Value)) +
-  geom_bar(stat = "identity") +
+plot_less <- ggplot(Time_Final_Less, aes(x = Hour, y = Hour_Value, color = sex)) +
+  geom_line(stat = "identity") +
   labs(x = "Hour", y = "Activity Values") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  coord_flip()  # Rotate the x-axis labels if needed
+  ggtitle("24h activity for Less than High School")+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1)) 
+
+#Second for data with education level equivalent to high school 
+long_clean_data_equi <- clean_data_equi %>%
+  pivot_longer(cols = c(min1: min1440), names_to = "Time", values_to = "Value")
+
+#combine rows based on the time interval an hour
+Time_Final_Equi <- long_clean_data_equi %>%
+  mutate(Hour = (as.numeric(sub("min", "", Time)) - 1) %/% 60 + 1) %>%
+  group_by(sex, Hour) %>%
+  mutate(Hour_Value = mean(Value))%>%
+  distinct(sex, Hour, Hour_Value)
 
 
+plot_equal <- ggplot(Time_Final_Equi, aes(x = Hour, y = Hour_Value, color = sex)) +
+  geom_line(stat = "identity") +
+  labs(x = "Hour", y = "Activity Values") +
+  ggtitle("24h activity for High School Equivalent")+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
 
+#Third for data with education level higher than high school
+long_clean_data_higher <- clean_data_higher %>%
+  pivot_longer(cols = c(min1: min1440), names_to = "Time", values_to = "Value")
+
+#combine rows based on the time interval an hour
+Time_Final_Higher <- long_clean_data_higher %>%
+  mutate(Hour = (as.numeric(sub("min", "", Time)) - 1) %/% 60 + 1) %>%
+  group_by(sex, Hour) %>%
+  mutate(Hour_Value = mean(Value))%>%
+  distinct(sex, Hour, Hour_Value)
+
+
+plot_higher <-ggplot(Time_Final_Higher, aes(x = Hour, y = Hour_Value, color = sex)) +
+  geom_line(stat = "identity") +
+  labs(x = "Hour", y = "Activity Values") +
+  ggtitle("24h activity for Higher than High School")+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+
+plot_grid(plot_less, plot_equal, plot_higher, align = "v", ncol = 1, rel_heights = c(.5, .5))
 ```
-
